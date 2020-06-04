@@ -28,6 +28,14 @@ print("Imported libraries")
 
 # Downloads the file using the Google Drive API
 def download_file(drive_service, file_id, filename, drafted_path):
+    """
+    Downloads Google Doc file from Google Drive to an specified directory path in .pdf format.
+    Input:
+          drive_service (Obj): Google Drive API client service after verifying credentials
+          file_id (String): Target Google Docs file ID.
+          filename (String): File name with which the Google Doc will be saved
+          drafted_path (String): local/cloud storage directory path where the downloaded file will be stored.
+    """
  
     request = drive_service.files().export_media(fileId = file_id, mimeType='application/pdf')
 
@@ -44,6 +52,16 @@ def download_file(drive_service, file_id, filename, drafted_path):
         
         
 def upload_file(drive_service, file_name, folder_id, completed_path):
+    """
+    Uploads a .pdf file from local/cloud directory to an specified folder in Google Drive.
+    Input:
+          drive_service (Obj): Google Drive API client service after verifying credentials
+          file_name (String): File name with which the .pdf file will be saved in Google Drive
+          file_id (String): Target Google Drive folder ID.
+          completed_path (String): Local/cloud storage directory path where the file will be retrieved to then be stored in Google Drive.
+    Output:
+          moved_file_id (String): The id of the uploaded file in the target directory
+    """
     file_metadata = {'name': file_name + '.pdf'}
     media = MediaFileUpload(completed_path + file_name + '.pdf', 
                             mimetype = 'application/pdf')
@@ -56,7 +74,7 @@ def upload_file(drive_service, file_name, folder_id, completed_path):
     moved_file = drive_service.files().update(fileId = file.get('id'),
                                         addParents = folder_id,
                                         removeParents = file.get('parents')[0],
-                                        fields='id, parents').execute()
+                                        fields = 'id, parents').execute()
 
     print('Uploaded Letter for ', file_name)
     
@@ -69,6 +87,18 @@ def upload_file(drive_service, file_name, folder_id, completed_path):
 #######################################################################
 
 def send_sign_req(sign_client, filename, name, email, drafted_path, cfo_email, cfo_name):
+    """
+    Input:
+          sign_client (Obj). Hello Sign Client to make the documents completion verification and send signature requests
+          filename (String): The name of the file to be sent through Hello Sign
+          name (String): The name of the new hire to sign the offer letter via Hello Sign
+          email (String): The email address of the new hire to sign the offer letter via Hello Sign
+          drafted_path (String): The local/cloud path where the to-be-sent file can be retrieved.
+          cfo_email: The email address of the CFO (company authority) to sign the offer letter via Hello Sign
+          cfo_name: The name of the CFO (company authority) to sign the offer letter via Hello Sign
+    Output:
+          sign_req (Obj): Hello Sign signature request object
+    """
     # Sends the Document through Hello Sign
     sign_req = sign_client.send_signature_request(
         test_mode = False,
@@ -78,7 +108,7 @@ def send_sign_req(sign_client, filename, name, email, drafted_path, cfo_email, c
         signers = [
             {'email_address': email, 'name': name},
             # CFO Email is a must in each letter.
-            {'email_address': cfo_email, 'name': cfo_name}
+            {'email_address': cfo_email, 'name': cfo_name} # ENV VAR
         ],
         use_text_tags = True,
         hide_text_tags = True,
@@ -90,6 +120,14 @@ def send_sign_req(sign_client, filename, name, email, drafted_path, cfo_email, c
 
 
 def download_completed_offer(sign_client, sign_req, sign_req_id, completed_path):
+    """
+    Downloads completed offer letters from Hello Sign
+    Input: 
+          sign_client (Obj). Hello Sign Client to make the documents completion verification and send signature requests
+          sign_req (Obj): Hello Sign signature request object of the offer letter to be downloaded
+          sign_req_id (String): Signature request ID of the offer letter to be downloaded
+          completed_path (String): Path to the local/cloud storage directory to store the downloaded offer letter.
+    """
     sign_client.get_signature_request_file(signature_request_id = sign_req_id,
                                                         filename = completed_path + sign_req.title + '.pdf',
                                                         file_type ='pdf')
@@ -97,6 +135,13 @@ def download_completed_offer(sign_client, sign_req, sign_req_id, completed_path)
     
     
 def send_reminder(sign_client, sign_req_id, hire_email):
+    """
+    Sends signature reminder to specific hires.
+    Input: 
+         sign_client (Obj). Hello Sign Client to make the documents completion verification and send signature requests.
+         sign_req_id (String): Signature request ID of the offer letter to be downloaded.
+         hire_email (String): The email address of the hire to be reminded.
+    """
     sign_client.remind_signature_request(signature_request_id = sign_req_id, email_address = hire_email)
 
 
@@ -106,39 +151,44 @@ def send_reminder(sign_client, sign_req_id, hire_email):
 #######################################################################
 
 def services_init(hello_sign_api_key, sheet_name, bucket_name):
-    print(hello_sign_api_key, sheet_name, bucket_name)
-
+    """
+    Initializes all the services from the used APIs
+    Input: 
+          hello_sign_api_key (String): API Key for the Hello Sign Client. Obtained from the websiste
+          sheet_name (String): The name of the Google Sheet requesting access to
+          bucket_name (String): The name of the Cloud Storage bucket where the APIs credentials files are stored.
+    Output:
+          sheet (Obj). Google Sheets Client File Object. Supposed to open the offers Tracker Sheet
+          drive_service (Obj). Google Drive Client. Bridges the Script with an authorized Project with Google Drive API enabled
+          sign_client (Obj). Hello Sign Client to make the documents completion verification and send signature requests
+    """      
     # Initializes a client using my corporate email API Key
     sign_client = HSClient(api_key = hello_sign_api_key) #ENV VAR
 
     print("Defined Hello Sign Client")
 
+    # Initializes Cloud Storage client to access the Google Sheets API and Google Drive API clients credentials files
+    # In the same GCP project, a storage bucket was created and these credentials files uploaded
+    # The following lines of code access these files and downloads them to the temporary Cloud Function directory
     storage_client = storage.Client()
     bucket = storage_client.get_bucket(bucket_name)
     blobs = bucket.list_blobs(delimiter = '/')
 
-    print(blobs)
-
     for blob in blobs:
-        print("blob")
         destination_uri = '/tmp/{}'.format(blob.name) 
         blob.download_to_filename(destination_uri)
 
-    print("Downloaded json and pickle clients files")
+    print("Downloaded Google Drive API and Google Sheets API .json and .pickle clients files")
 
     # Initializes Google Sheets API Service from client
     scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
     creds = ServiceAccountCredentials.from_json_keyfile_name(opla_path, scope) #ENV VAR
-    print("Obtained creds variable")
     client = gspread.authorize(creds)
-    print("Obtained gspread client variable")
-
-
+    
     # Obtains a Google Sheets service
     sheet = client.open(sheet_name).sheet1 #ENV VAR
 
     print("Defined Google Sheets Service")
-
 
     # Initializes Google Drive API Service from client
     SCOPES = ['https://www.googleapis.com/auth/drive']
@@ -182,8 +232,10 @@ def main(sheet, drive_service, sign_client, folder_id, drafted_path, completed_p
             folder_id (String). Google Drive Folder ID to upload the completed files
             draft_path (String): Path in local machine to store drafted documents templates from Google Drive
             completed_path (String): Path in local machine to store the completed documents from Hello Sign
+            cfo_email (String): The email address of the company's CFO, who is the official signer of these offer letters
+            cfo_name (String): The name of the company's CFO, who is the official signer of these offer letters
     
-    Ouput: Depending on the conditions and status on the HR Spreadsheet
+    Output: Depending on the conditions and status on the HR Spreadsheet
     - Downloads drafted documents to be signed from Googe Drive to our local machine on a specified path
     - Sends signature requests with document template through Hello Sign
     - Downloads completed documents from Hello SIgn to local machine
@@ -259,6 +311,11 @@ def main(sheet, drive_service, sign_client, folder_id, drafted_path, completed_p
 
 
 def handler(request):
+    """
+    Function to be triggered by the Cloud Function.
+    Input: An HTTP Request. Preferably a POST request.
+    Output: None. Proceeds with initializing the APIs services and unfold the pipeline process
+    """
     if request.method == 'POST':
         print('Starting handler function')
         hello_sign_api_key = os.getenv('HELLO_SIGN_API_KEY')
