@@ -224,6 +224,10 @@ def services_init(hello_sign_api_key, sheet_name, bucket_name):
     return sheet, drive_service, sign_client
 
 
+#######################################################################
+###### Main function that performs the purpose of the pipeline ########
+#######################################################################
+
 def main(sheet, drive_service, sign_client, folder_id, drafted_path, completed_path, cfo_email, cfo_name):
     """
     Input: sheet (Obj). Google Sheets Client File Object. Supposed to open the offers Tracker Sheet
