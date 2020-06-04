@@ -34,4 +34,5 @@ Pending to explain every step in the process for replication by the reader. Do's
 - “ImportError: file_cache is unavailable” when using Python client for Google service account file_cache (https://stackoverflow.com/questions/40154672/importerror-file-cache-is-unavailable-when-using-python-client-for-google-ser)
 - Collect Logs for the Google Cloud Functions App (https://help.sumologic.com/07Sumo-Logic-Apps/06Google/Google_Cloud_Functions/Collect_Logs_for_the_Google_Cloud_Functions_App)
 - Cloud Functions tima based automation using Cloud Scheduler on GCP (https://rominirani.com/google-cloud-functions-tutorial-using-the-cloud-scheduler-to-trigger-your-functions-756160a95c43)
+- Configuring cron job schedule in Cloud Scheduler on GCP (https://cloud.google.com/scheduler/docs/configuring/cron-job-schedules?&_ga=2.106010307.-1333731722.1582023546&_gac=1.128890238.1589515976.Cj0KCQjw2PP1BRCiARIsAEqv-pRCa92FrNZH9CIDwMKaDpV5PIYeR2pKjAd4jbb1TDfeurPI3YnqX1IaAnYJEALw_wcB#defining_the_job_schedule)
 
