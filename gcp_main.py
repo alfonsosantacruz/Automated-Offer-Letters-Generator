@@ -27,7 +27,7 @@ print("Imported libraries")
 #######################################################################
 
 # Downloads the file using the Google Drive API
-def download_file(drive_service, file_id, filename, drafted_path):
+def download_file(drive_service, file_id, drafted_path):
     """
     Downloads Google Doc file from Google Drive to an specified directory path in .pdf format.
     Input:
@@ -35,9 +35,13 @@ def download_file(drive_service, file_id, filename, drafted_path):
           file_id (String): Target Google Docs file ID.
           filename (String): File name with which the Google Doc will be saved
           drafted_path (String): local/cloud storage directory path where the downloaded file will be stored.
+    Output: filename (String): The original name of the downloaded file.
     """
  
+    # HTTP Request to download a Google Doc file as pdf format
     request = drive_service.files().export_media(fileId = file_id, mimeType='application/pdf')
+    # HTTP GET Request to obtain the metadata of the downloaded file
+    filename = drive_service.files().get(fileId = file_id).execute()['name']
 
     # Saves the file in our local machine to send for signing
     fh = io.BytesIO()
@@ -49,6 +53,8 @@ def download_file(drive_service, file_id, filename, drafted_path):
     with io.open(drafted_path + filename + '.pdf', 'wb') as f:
         fh.seek(0)
         f.write(fh.read())
+        
+    return filename
         
         
 def upload_file(drive_service, file_name, folder_id, completed_path):
@@ -119,17 +125,18 @@ def send_sign_req(sign_client, filename, name, email, drafted_path, cfo_email, c
     return sign_req
 
 
-def download_completed_offer(sign_client, sign_req, sign_req_id, completed_path):
+def download_completed_offer(sign_client, sign_req, file_title, sign_req_id, completed_path):
     """
     Downloads completed offer letters from Hello Sign
     Input: 
           sign_client (Obj). Hello Sign Client to make the documents completion verification and send signature requests
           sign_req (Obj): Hello Sign signature request object of the offer letter to be downloaded
+          file_title (String): The name that will be given to the downloaded file
           sign_req_id (String): Signature request ID of the offer letter to be downloaded
           completed_path (String): Path to the local/cloud storage directory to store the downloaded offer letter.
     """
     sign_client.get_signature_request_file(signature_request_id = sign_req_id,
-                                                        filename = completed_path + sign_req.title + '.pdf',
+                                                        filename = completed_path + file_title + '.pdf',
                                                         file_type ='pdf')
 
     
@@ -228,12 +235,13 @@ def services_init(hello_sign_api_key, sheet_name, bucket_name):
 ###### Main function that performs the purpose of the pipeline ########
 #######################################################################
 
-def main(sheet, drive_service, sign_client, folder_id, drafted_path, completed_path, cfo_email, cfo_name):
+def main(sheet, drive_service, sign_client, folder_id, ctr_folder_id, drafted_path, completed_path, cfo_email, cfo_name):
     """
     Input: sheet (Obj). Google Sheets Client File Object. Supposed to open the offers Tracker Sheet
             drive_service (Obj). Google Drive Client. Bridges the Script with an authorized Project with Google Drive API enabled
             sign_client (Obj). Hello Sign Client to make the documents completion verification and send signature requests
             folder_id (String). Google Drive Folder ID to upload the completed files
+            folder_id (String). Google Drive Folder ID to upload the completed files for contractors
             draft_path (String): Path in local machine to store drafted documents templates from Google Drive
             completed_path (String): Path in local machine to store the completed documents from Hello Sign
             cfo_email (String): The email address of the company's CFO, who is the official signer of these offer letters
@@ -256,11 +264,11 @@ def main(sheet, drive_service, sign_client, folder_id, drafted_path, completed_p
             hire_name = hires[i - 1][2]
             hire_email = hires[i - 1][3]
             hire_position = hires[i - 1][5]
-            file_name = hire_name + '-' + hire_position
+            # file_name = hire_name + '-' + hire_position
             file_id = hires[i - 1][26] # Brings the DocID number for the download
             
             # Downloads the file using the Google Drive API
-            download_file(drive_service, file_id, file_name, drafted_path)
+            filename = download_file(drive_service, file_id, drafted_path)
                 
             # Sends the Document through Hello Sign
             sign_req = send_sign_req(sign_client, filename, name, email, drafted_path, cfo_email, cfo_name)
@@ -279,17 +287,27 @@ def main(sheet, drive_service, sign_client, folder_id, drafted_path, completed_p
             sign_req_id = hires[i - 1][26]
             sign_req = sign_client.get_signature_request(sign_req_id)
             if sign_req.is_complete == True:
+                file_title = sign_req.title
                 
-                # Downloads Signed Offer Letter to local machine
-                download_completed_offer(sign_client, sign_req, sign_req_id, completed_path)
-                
-                # Uploads Offer Letter to Google Drive using the API (to folder with folder_id)
-                moved_file_id = upload_file(drive_service, sign_req.title, folder_id, completed_path)
-                
+                # CHecks whether the offer is for a Contractor
+                if file_title[:3] == 'CTR':
+                    # Downloads Signed Offer Letter to local machine
+                    download_completed_offer(sign_client, sign_req, file_title, sign_req_id, completed_path)
+
+                    # Uploads Offer Letter to Google Drive using the API (to folder with folder_id)
+                    moved_file_id = upload_file(file_title, ctr_folder_id, completed_path)
+                    
+                else:
+                    # Downloads Signed Offer Letter to local machine
+                    download_completed_offer(sign_client, sign_req, file_title, sign_req_id, completed_path)
+
+                    # Uploads Offer Letter to Google Drive using the API (to folder with folder_id)
+                    moved_file_id = upload_file(file_title, folder_id, completed_path)
+
                 sheet.update_cell(i, 20, 'Signed')
                 sheet.update_cell(i, 27, moved_file_id)
                 
-                print('Updated Offer Letter status for ', sign_req.title)
+                print('Updated Offer Letter status for ', file_title)
                 
                 print("")
                 print("---------------------------------------------------------------------------------")
@@ -327,6 +345,7 @@ def handler(request):
 
         # Folder used to store the uploaded signed offer letters
         folder_id = os.getenv('DRIVE_FOLDER_ID')
+        ctr_folder_id = os.getenv('CTR_FOLDER_ID')
         
         # Bucket in Google Cloud Storage where the token.pkl and client.json files are
         bucket_name = os.getenv('BUCKET_NAME')
@@ -348,4 +367,4 @@ def handler(request):
         # Adds COmpany signer as ENV VAR for privacy and quick switch if official signer is changed
         cfo_email, cfo_name = os.getenv('CFO_EMAIL'), os.getenv('CFO_NAME')
 
-        main(sheet, drive_service, sign_client, folder_id, drafted_path, completed_path, cfo_email, cfo_name) 
+        main(sheet, drive_service, sign_client, folder_id, ctr_folder_id, drafted_path, completed_path, cfo_email, cfo_name) 
