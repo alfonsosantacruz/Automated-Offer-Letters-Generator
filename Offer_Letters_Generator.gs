@@ -3,7 +3,7 @@
 
 function createOfferDocs() {
   
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Name of the Spreadsheet you started the Google Apps Script Project on');
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('2020 Internships');
   var startRow = 7; // First row of data to process
   var numRows = sheet.getLastRow(); // Number of rows to process
   var dataRange = sheet.getRange(startRow, 3, numRows, 28);
@@ -19,8 +19,8 @@ function createOfferDocs() {
           
       if (status == 'Compiled') {
       
-          // Normal Offer Letter Template grom Google Docs
-          var templateID = '***********************************************';
+          // Normal Offer Letter Template
+          var templateID = '********************************************';
           var newDocID = DriveApp.getFileById(templateID).makeCopy().getId();
       
           var name = row[0],
@@ -52,8 +52,37 @@ function createOfferDocs() {
       
       else if (status == 'ITP') {
       
-          // Instructor Training Participant Offer Letter Template from Google Docs
-          var templateID = '************************************************';
+          // Instructor Training Participant Offer Letter Template
+          var templateID = '********************************************';
+          var newDocID = DriveApp.getFileById(templateID).makeCopy().getId();
+      
+          var name = row[0],
+              title = row[3],
+              manager = row[5],
+              location = row[12],
+              startDate = Utilities.formatDate(new Date(row[7]), "GMT+1", "MM/dd/yyyy"),
+              endDate = Utilities.formatDate(new Date(row[8]), "GMT+1", "MM/dd/yyyy");
+          
+          var body = DocumentApp.openById(newDocID).getBody();
+          body.replaceText('##TodaysDate##', today)
+          body.replaceText('##FullName##', name)
+          body.replaceText('##JobTitle##', title)
+          body.replaceText('##ManagersName##', manager)
+          body.replaceText('##Location##', location)
+          body.replaceText('##StartDate##', startDate)
+          body.replaceText('##EndDate##', endDate)
+          
+          DriveApp.getFileById(newDocID).setName(name + ' ' + title);
+          
+          sheet.getRange(startRow + i, 20).setValue('Drafted');
+          sheet.getRange(startRow + i, 27).setValue(newDocID);
+      
+      }
+      
+      else if (status == 'Contractor') {
+      
+          // Contractor Offer Letter Template
+          var templateID = '********************************************';
           var newDocID = DriveApp.getFileById(templateID).makeCopy().getId();
       
           var name = row[0],
@@ -71,17 +100,48 @@ function createOfferDocs() {
           body.replaceText('##JobTitle##', title)
           body.replaceText('##ManagersName##', manager)
           body.replaceText('##Location##', location)
+          body.replaceText('##Salary##', salary)
           body.replaceText('##FirstPayDate##', firstPayDate)
           body.replaceText('##StartDate##', startDate)
           body.replaceText('##EndDate##', endDate)
           
-          DriveApp.getFileById(newDocID).setName(name + ' ' + title);
+          DriveApp.getFileById(newDocID).setName('CTR_' + name + ' ' + title);
           
           sheet.getRange(startRow + i, 20).setValue('Drafted');
           sheet.getRange(startRow + i, 27).setValue(newDocID);
+          
+               
+      }
       
-    }
-  }
+      else if (status == 'Contractor_ITP') {
+      
+          // Contractor Instructor Training Participant Offer Letter Template
+          var templateID = '********************************************';
+          var newDocID = DriveApp.getFileById(templateID).makeCopy().getId();
+      
+          var name = row[0],
+              title = row[3],
+              manager = row[5],
+              location = row[12],
+              startDate = Utilities.formatDate(new Date(row[7]), "GMT+1", "MM/dd/yyyy"),
+              endDate = Utilities.formatDate(new Date(row[8]), "GMT+1", "MM/dd/yyyy");
+          
+          var body = DocumentApp.openById(newDocID).getBody();
+          body.replaceText('##TodaysDate##', today)
+          body.replaceText('##FullName##', name)
+          body.replaceText('##JobTitle##', title)
+          body.replaceText('##ManagersName##', manager)
+          body.replaceText('##Location##', location)
+          body.replaceText('##StartDate##', startDate)
+          body.replaceText('##EndDate##', endDate)
+          
+          DriveApp.getFileById(newDocID).setName('CTR_' + name + ' ' + title);
+          
+          sheet.getRange(startRow + i, 20).setValue('Drafted');
+          sheet.getRange(startRow + i, 27).setValue(newDocID);
+          
+      }
+   }
 }
 
 
