@@ -19,6 +19,7 @@ Pending to explain every step in the process for replication by the reader. Do's
 - Google Drive API Python Quickstart (https://developers.google.com/drive/api/v3/quickstart/python)
 - Documentation to upload and Download file data using Google Drive API (https://developers.google.com/drive/api/v3/manage-uploads)
 - Google Drive API Documentation to manage files and folders (https://developers.google.com/drive/api/v2/folder)
+- Obtain metadata for a file object (https://developers.google.com/drive/api/v3/reference/files/get)
 - Google Drive API Python Getting Started Upload, Download, Create Files Folder (https://www.youtube.com/watch?v=9OYYgJUAw-w)
 - Resolve Erros from Google Drive API (https://developers.google.com/drive/api/v3/handle-errors#resolve_a_404_error_file_not_found_fileid)
 
