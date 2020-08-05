@@ -3,6 +3,32 @@ Deployed using GCP (Cloud Functions, Storage, Apps Scripts and Stackdriver), lev
 
 Pending to explain every step in the process for replication by the reader. Do's and Don'ts. (With animation ~ 1 min)
 
+### SQL Database Schema
+This is the schema included in the Google Sheet. If the parameters of the following schema are added as columns to a Google Sheet and the correct credentials provided, the project can be replicated in your local machine. The schema is also shown to provide further understanding of the workflow, allowing the reader to adapt this project to other scenarios.
+
+| Name | Description | 
+|   :---:      |     :---:      | 
+| Hire_Full_Name   | (String) Full name of the individual to hire  | 
+| Corporate_Email     | (String) Corporate email of the hire. If not available, any contact email works | 
+| Job_Title   | (String) Role title  | 
+| Company     | (String) There are many companies in the payroll. Indicates which one the hire corresponds to.  | 
+| Manager_Name   | (String) Name of the manager hiring this individual  | 
+| Team_Name     | (String) Name of the team the hire will belong to | 
+| Start_Date   | (Date) Could also be a string as long as it has the form mm/dd/yyyy. Start date of the offer | 
+| End_Date     | (Date) Could also be a string as long as it has the form mm/dd/yyyy. End date of the offer  | 
+| Weekly_Salary   | (Number) Weekly salary of the hire  | 
+| Hours_Per_Week     | (Number) Number of hours it is expected for the hire to work each week | 
+| Location   | (String) Location where the hire is to work. Set whether HQ, satellite office or remote.  | 
+| Senior_Team_Approval     | (Boolean) Whether the Senior Team has approved this hire.  | 
+| GND_Approval   | (Boolean) Whether this team has approved this hire  | 
+| Offer_Letter_Status     | (Categorical) Drop-down menu indicating the type of hire. Could be Contractor, Full-Time, Foreign Contractor  | 
+| Previously_Hired   | (Boolean) Whether the hire has been in the organization before. Could be being hired again or renewing its offer.  | 
+| Already_In_Payroll     | (Boolean) Whether the hire is in the payroll system already  | 
+| Note   | (String) Notes to indicate special cases for each hire | 
+| First_Pay_Date     | (Date) First pay date to incldue in the offer for the hire  | 
+| Misc_Data   | (String) Generally used to store IDs for offer letter docs or the IDs for HelloSign signature requests  | 
+
+
 ### References
 
 ##### Google Apps Script
