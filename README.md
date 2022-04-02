@@ -1,9 +1,7 @@
 # Automated-Offer-Letters-Generator
 Deployed using GCP (Cloud Functions, Storage, Apps Scripts and Stackdriver), leverages Google Sheets API, Google Drive API, Gmail API and HelloSign API to automate a pipeline to generate, send and save (when signed) offer letters based on authorization conditions and data input from many company teams on an internal database.
 
-Pending to explain every step in the process for replication by the reader. Do's and Don'ts. (With animation ~ 1 min)
-
-### SQL Database Schema
+### [Example-Deprecated] SQL Database Schema
 This is the schema included in the Google Sheet. If the parameters of the following schema are added as columns to a Google Sheet and the correct credentials provided, the project can be replicated in your local machine. The schema is also shown to provide further understanding of the workflow, allowing the reader to adapt this project to other scenarios.
 
 | Name | Description | 
@@ -64,3 +62,5 @@ This is the schema included in the Google Sheet. If the parameters of the follow
 - Cloud Functions tima based automation using Cloud Scheduler on GCP (https://rominirani.com/google-cloud-functions-tutorial-using-the-cloud-scheduler-to-trigger-your-functions-756160a95c43)
 - Configuring cron job schedule in Cloud Scheduler on GCP (https://cloud.google.com/scheduler/docs/configuring/cron-job-schedules?&_ga=2.106010307.-1333731722.1582023546&_gac=1.128890238.1589515976.Cj0KCQjw2PP1BRCiARIsAEqv-pRCa92FrNZH9CIDwMKaDpV5PIYeR2pKjAd4jbb1TDfeurPI3YnqX1IaAnYJEALw_wcB#defining_the_job_schedule)
 
+##### Available to Minerva Students only.
+See an example of the Google Sheet schema here: https://drive.google.com/drive/folders/1UW_5ayON4OhBB6yTEAKhVZcLLjcUjyPg?usp=sharing
