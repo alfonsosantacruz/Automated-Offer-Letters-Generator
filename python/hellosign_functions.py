@@ -5,14 +5,17 @@ def send_sign_req(sign_client, filename, name, email, drafted_path):
     # Sends the Document through Hello Sign
     sign_req = sign_client.send_signature_request(
         test_mode = False,
-        title = filename + ' Summer Internship 2020 Offer Letter',
-        subject = filename + ' Summer Internship 2020 Offer Letter',
-        message = 'Hi, Please review and sign the offer letter through Hello Sign as part of your Summer 2020 Internship Position at Minerva. Best!',
+        title = filename + ' WS AY 21-22 Offer Letter',
+        subject = filename + ' WS AY 21-22 Offer Letter',
+        message = 'Hi, Please review and sign the offer letter through Hello Sign as part of your Work Study position at Minerva. Best!',
         signers = [
             {'email_address': email, 'name': name},
             # CFO Email is a must in each letter. Inputs as fixed string
-            {'email_address': 'cfo@email.com', 'name': 'Chief Financial Officer'}
+            # {'email_address': 'cfo@minerva.edu', 'name': 'CFOs Name'}
         ],
+#         cc_email_addresses=[
+#             'asantacruz@uni.minerva.edu', 
+#         ],
         use_text_tags = True,
         hide_text_tags = True,
         files = [drafted_path + filename + '.pdf'])
