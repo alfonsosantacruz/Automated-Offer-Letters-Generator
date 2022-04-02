@@ -37,7 +37,9 @@ creds = ServiceAccountCredentials.from_json_keyfile_name('**********************
 client = gspread.authorize(creds)
 
 # Obtains a Google Sheets service
-sheet = client.open('Name of the Google Sheets File to Open').sheet1
+sheet = client.open_by_key(sheet_file_id)
+updates_sheet = sheet.worksheet("Updates")
+checklist_sheet = sheet.worksheet("Offers Checklist")
 
 print("Defined Google Sheets Service")
 
@@ -76,4 +78,4 @@ ctr_folder_id = '*********************************' # Where to send contractors 
 drafted_path = '../DraftedOfferLettersByScript/#' # Adds # to identify those are drafted letters
 completed_path = '../SignedOfferLettersByScript/'
 
-main(sheet, drive_service, sign_client, folder_id, ctr_folder_id, drafted_path, completed_path)
+main(updates_sheet, checklist_sheet, drive_service, sign_client, folder_id, drafted_path, completed_path)
