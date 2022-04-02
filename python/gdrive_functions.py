@@ -10,9 +10,13 @@ from googleapiclient.http import MediaIoBaseDownload, MediaFileUpload
 
 
 # Downloads the file using the Google Drive API
-def download_file(drive_service, file_id, filename, drafted_path):
- 
+def download_file(drive_service, file_id, drafted_path):
+    # HTTP Request to download a Google Doc file as pdf format
     request = drive_service.files().export_media(fileId = file_id, mimeType='application/pdf')
+    # HTTP GET Request to obtain the metadata of the downloaded file
+    filename = drive_service.files().get(fileId = file_id, supportsAllDrives=True).execute()["name"]
+    filename = filename.replace("/", "-")
+    filename = filename.replace("Design/Researcher", "Design-Researcher")
 
     # Saves the file in our local machine to send for signing
     fh = io.BytesIO()
@@ -24,6 +28,8 @@ def download_file(drive_service, file_id, filename, drafted_path):
     with io.open(drafted_path + filename + '.pdf', 'wb') as f:
         fh.seek(0)
         f.write(fh.read())
+       
+    return filename
         
         
 def upload_file(drive_service, file_name, folder_id, completed_path):
@@ -37,6 +43,7 @@ def upload_file(drive_service, file_name, folder_id, completed_path):
 
     # Move the file to the new folder
     moved_file = drive_service.files().update(fileId = file.get('id'),
+                                        supportsAllDrives=True,
                                         addParents = folder_id,
                                         removeParents = file.get('parents')[0],
                                         fields='id, parents').execute()
